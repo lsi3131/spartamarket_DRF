@@ -105,5 +105,22 @@ class LikeAPIView(APIView):
 
         user = User.objects.get(username=username)
         item.like_users.add(user)
+        item.save()
+
+        return Response({'message': f'{username} add to like user'})
+
+    @extend_schema(tags=['Likes'], description="좋아요 삭제를 위한 API")
+    def delete(self, request: HttpRequest, id):
+        User = get_user_model()
+        username = request.data['user']
+        item = get_object_or_404(Item, id=id)
+
+        users = item.like_users.filter(username=username)
+        if not users.exists():
+            return Response({'message': f'{username} is not exists in like system'})
+
+        user = User.objects.get(username=username)
+        item.like_users.remove(user)
+        item.save()
 
         return Response({'message': f'{username} add to like user'})

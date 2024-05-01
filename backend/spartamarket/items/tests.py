@@ -192,10 +192,18 @@ class ItemsListAPIViewTestCase(TestCase):
         data['user'] = user3.username
         self.client.post(url, data=json.dumps(data), content_type='application/json')
 
-        # item.like_users.add(user1)
-        # item.like_users.add(user2)
-        # item.like_users.add(user3)
-        # item.save()
-
         ret_item = Item.objects.get(id=item.id)
         self.assertEqual(3, ret_item.like_users.all().count())
+
+    def test_delete_like(self):
+        user1 = User.objects.create_user(username='user1', password='password')
+        item = Item.objects.create(title='item1', content='content', user=user1)
+        item.like_users.add(user1)
+        item.save()
+
+        url = reverse('items:like', args=[item.id])
+        data = {'user': user1.username}
+        self.client.delete(url, data=json.dumps(data), content_type='application/json')
+        #
+        ret_item = Item.objects.get(id=item.id)
+        self.assertEqual(0, ret_item.like_users.all().count())
