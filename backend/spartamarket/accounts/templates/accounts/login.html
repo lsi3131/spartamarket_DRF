@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="vertical" style="padding-top: 40px">
+        <div class="my-2">
+            <img class="navbar-image-logo marginRight16" src="{% static "sparta.png" %}" alt="">
+            <span>스파르타마켓</span>
+            <img class="navbar-image-logo marginLeft16" src="{% static "sparta.png" %}" alt="">
+        </div>
+        <div class="vertical">
+            <form method="post" class="vertical">
+                {% csrf_token %}
+                <input type="text" name="userid" placeholder="ID" class="custom-input">
+                <input type="password" name="userpw" placeholder="Password" class="custom-input">
+                <button class="button-login marginTop16">로그인</button>
+            </form>
+            <div id="loginBottomArea">
+                <a href="{% url 'accounts:signup' %}" class="button-register">회원가입</a>
+            </div>
+            <div>
+                <span>{{ error_message }}</span>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <h3 class="customHeader">
+        내 정보
+    </h3>
+    <div class="margin_bottom">
+        {% csrf_token %}
+        <div class="custom_row">
+            <div class="custom_row_key">프로필 사진</div>
+            <div class="custom_row_value">
+                <form class="horizontal" method="post" enctype="multipart/form-data">
+                    <!-- 이미지 파일 데이터에 알맞는 enctype 설정 -->
+                    <div class="addImage" id="image-profile">
+                        {% if request.user.image %}
+                            <div>
+                                <img class="profile-user-image" src="{{ request.user.image.url }}" alt="">
+                            </div>
+                        {% else %}
+                            <div>
+                                <img class="profile-user-image" src="{% static "images/default_user.png" %}" alt="">
+                            </div>
+                        {% endif %}
+                    </div>
+                    <input type="file" accept="image/*" onchange="addImage(event)">
+                </form>
+            </div>
+        </div>
+        <div class="custom_row">
+            <div class="custom_row_key">계정등급</div>
+            <div class="custom_row_value">{% if request.user.is_superuser %}관리자 계정{% else %}사용자 계정{% endif %}</div>
+        </div>
+        <div class="custom_row">
+            <div class="custom_row_key">아이디</div>
+            <div class="custom_row_value">{{ request.user.username }}</div>
+        </div>
+        <div class="custom_row">
+            <div class="custom_row_key">패스워드</div>
+            <div class="custom_row_value">
+            <span class="passwordForm">
+                <input type="password" class="changePass" style="width:0">
+            </span>
+                <button id="passChBtn" class="btn btn-theme-color btn-sm" onclick="createPassForm()">수정하기</button>
+            </div>
+        </div>
+        <div class="custom_row">
+            <div class="custom_row_key">이메일</div>
+            <div class="custom_row_value">{{ request.user.email }}</div>
+        </div>
+        <div class="custom_row">
+            <div class="custom_row_key">계정 생성일</div>
+            <div class="custom_row_value">{{ request.user.date_joined|date:"Y-m-d H:i" }}</div>
+        </div>
+        <div class="custom_row">
+            <div class="custom_row_key">자기 소개</div>
+            <div class="custom_row_value">
+                <textarea name="content" class="changeValueText">{{ request.user.comment }}</textarea>
+            </div>
+        </div>
+        <div class="custom_row">
+            <div class="custom_row_key">팔로잉 {{ request.user.following.count }}</div>
+            <div class="custom_row_key">팔로워 {{ request.user.followers.count }}</div>
+        </div>
+
+    </div>
+
+    <!-- 수정된 버튼과 모달 코드 -->
+    <div class="button_area">
+        <button type="button" class="btn btn-danger" onclick="updateAccount()">
+            정보 수정
+        </button>
+    </div>
+
+    <!-- 패스워드 검증 모달 -->
+    <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="passwordModalLabel">패스워드 확인</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- 패스워드 입력 폼 -->
+                    <div class="mb-3">
+                        <label for="passwordInput" class="form-label">패스워드</label>
+                        <input type="password" class="form-control" id="passwordInput">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-danger" id="confirmButton">확인</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null
+        const csrfTokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        const contentInput = document.querySelector('textarea[name="content"]');
+
+        function addImage(event) {
+            // 파일 선택 다이얼로그에서 파일을 선택했을 때 이벤트 처리
+            selectedFile = event.target.files[0];
+            console.log(selectedFile)
+
+            var divImage = document.getElementById('image-profile');
+
+            imgSrc = URL.createObjectURL(selectedFile);
+
+            var htmlString = `
+            <img src="${imgSrc}" class="profile-user-image" alt="...">
+`;
+            var divInnerImage = document.createElement('div');
+            divInnerImage.innerHTML = htmlString;
+
+            divImage.innerHTML = ''
+            divImage.appendChild(divInnerImage)
+        }
+
+        function updateAccount() {
+            let formData = new FormData();
+            const content = contentInput.value.trim()
+            const csrfToken = csrfTokenInput.value.trim()
+
+            formData.append('file', selectedFile)
+            formData.append('content', content)
+
+            console.log('content')
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', '/accounts/update/', true);
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    console.log('업로드 성공');
+                    window.location = '../../../items/index/'
+                } else {
+                    console.error('파일 업로드 실패');
+                }
+            }
+            xhr.setRequestHeader('X-CSRFToken', csrfToken);
+            xhr.send(formData);
+        }
+
+        function deleteAccount() {
+            console.log('delete')
+        }
+
+
+        function createPassForm() {
+            var btn = document.querySelector("#passChBtn");
+            var passwordForm = document.querySelector(".passwordForm");
+            var inputForm = document.querySelector(".changePass");
+
+            if (btn.innerHTML === "수정하기") {
+                btn.innerHTML = "수정완료"
+                btn.setAttribute("class", "btn btn-sm changePass btn-sub-color");
+                inputForm.removeAttribute('style');
+                inputForm.removeAttribute('disabled');
+                inputForm.focus();
+            } else {
+                btn.innerHTML = "수정하기"
+                inputForm.setAttribute('disabled', "true");
+                btn.setAttribute("class", "btn btn-sm changePass btn-theme-color");
+            }
+        }
+
+        function createTextForm() {
+            const btn = document.querySelector("#commChBtn");
+            const commentArea = document.querySelector('.changeValueText')
+            if (btn.innerHTML === "수정하기") {
+                btn.innerHTML = "수정완료"
+                btn.setAttribute("class", "btn btn-sm btn-sub-color");
+                commentArea.removeAttribute('disabled');
+                commentArea.focus();
+                commentArea.setSelectionRange(commentArea.value.length, commentArea.value.length);
+            } else {
+                btn.innerHTML = "수정하기"
+                btn.setAttribute("class", "btn btn-sm btn-theme-color");
+                // 이전 값으로 textarea를 갱신
+                console.log(commentArea);
+                commentArea.setAttribute('disabled', 'true');
+            }
+        }
+
+    </script>
+{% endblock %}

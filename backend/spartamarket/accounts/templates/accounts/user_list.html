@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    {% for user in users %}
+        {% if request.user != user %}
+            <div class="horizontal">
+                <div class="d-flex justify-content-start">
+                    {% if user.image %}
+                        <img class="detail-user-image" src="{{ user.image.url }}" alt=""/>
+                    {% else %}
+                        <img class="detail-user-image" src="{% static "images/default_user.png" %}" alt=""/>
+                    {% endif %}
+
+                    <div class="container">
+                        <h3>{{ user.username }}</h3>
+                    </div>
+                </div>
+                <div>
+                    <form action="{% url "accounts:follow" user.id %}" method="POST">
+                        {% csrf_token %}
+                        {% if request.user in user.followers.all %}
+                            <button type="submit" class="btn btn-danger">언팔로우</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-danger">팔로우</button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+            <hr>
+        {% endif %}
+    {% endfor %}
+{% endblock %}
