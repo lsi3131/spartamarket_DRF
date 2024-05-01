@@ -174,3 +174,28 @@ class ItemsListAPIViewTestCase(TestCase):
         item = Item.objects.first()
         self.assertEqual(cate2.id, item.category.id)
         self.assertEqual(cate2.name, item.category.name)
+
+    def test_post_like_multi(self):
+        user1 = User.objects.create_user(username='user1', password='password')
+        user2 = User.objects.create_user(username='user2', password='password')
+        user3 = User.objects.create_user(username='user3', password='password')
+
+        item = Item.objects.create(title='item1', content='content', user=user1)
+
+        url = reverse('items:like', args=[item.id])
+        data = {'user': user1.username}
+        self.client.post(url, data=json.dumps(data), content_type='application/json')
+
+        data['user'] = user2.username
+        self.client.post(url, data=json.dumps(data), content_type='application/json')
+
+        data['user'] = user3.username
+        self.client.post(url, data=json.dumps(data), content_type='application/json')
+
+        # item.like_users.add(user1)
+        # item.like_users.add(user2)
+        # item.like_users.add(user3)
+        # item.save()
+
+        ret_item = Item.objects.get(id=item.id)
+        self.assertEqual(3, ret_item.like_users.all().count())

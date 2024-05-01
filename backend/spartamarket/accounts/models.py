@@ -11,3 +11,4 @@ class User(AbstractUser):
     nickname = models.CharField(max_length=50, default='')
     birthday = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=1,choices=GENDER_CHOICE, default='M')
+

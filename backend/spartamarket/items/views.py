@@ -2,7 +2,7 @@ from django.http.request import HttpRequest
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
-from django.core.paginator import Paginator
+from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
@@ -90,3 +90,20 @@ class CategoryAPIView(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class LikeAPIView(APIView):
+    @extend_schema(tags=['Likes'], description="좋아요 생성을 위한 API")
+    def post(self, request: HttpRequest, id):
+        User = get_user_model()
+        username = request.data['user']
+        item = get_object_or_404(Item, id=id)
+
+        users = item.like_users.filter(username=username)
+        if users.exists():
+            return Response({'message': f'{username} is already in like system'})
+
+        user = User.objects.get(username=username)
+        item.like_users.add(user)
+
+        return Response({'message': f'{username} add to like user'})

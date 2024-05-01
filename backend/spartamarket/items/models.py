@@ -20,11 +20,15 @@ class Item(models.Model):
 
     category = models.ForeignKey(Category, related_name="items", on_delete=models.CASCADE, default=None, null=True)
 
+    like_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="like_items"
+    )
+
     def __str__(self):
         return self.title
 
 
-class Like(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="likes")
-    item = models.ForeignKey(Item, related_name="likes", on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
+# class Like(models.Model):
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="likes")
+#     item = models.ForeignKey(Item, related_name="likes", on_delete=models.CASCADE)
+#     created_at = models.DateTimeField(auto_now_add=True)

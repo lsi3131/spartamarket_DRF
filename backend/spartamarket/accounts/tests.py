@@ -95,17 +95,17 @@ class AccountAPIView(TestCase):
 
     def test_delete_user(self):
         user = User.objects.create_user(username='user', password='pass')
-        url = reverse('accounts:delete', args=['user'])
+        url = reverse('accounts:delete', args=[user.username])
 
         delete_data = {
             'password': 'invalid_pass'
         }
         # 로그인 안되었을 때 삭제 실패
         response = self.client.delete(url, data=json.dumps(delete_data), content_type='application/json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         # 로그인 진행
-        self.client.force_login(user)
+        self.client.force_authenticate(user)
 
         # 비밀번호가 일치하지 않을 경우 삭제 실패
         response = self.client.delete(url, data=json.dumps(delete_data), content_type='application/json')
