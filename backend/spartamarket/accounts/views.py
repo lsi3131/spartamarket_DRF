@@ -151,3 +151,36 @@ class DeleteUserAPIView(APIView):
 
         user.delete()
         return Response({'message': f'"{username}" is deleted.'})
+
+
+class FollowingAPIView(APIView):
+    @extend_schema(tags=['Account'], description="팔로잉 추가")
+    def post(self, request, username):
+        following_user = get_object_by_username(username)
+        if not following_user:
+            return Response({'message': f'{username} user not exists'})
+
+        follower_username = request.data['follower']
+        follower_user = get_object_or_404(User, username=follower_username)
+        if not follower_user:
+            return Response({'message': f'follower not exists'})
+
+        following_user.following.add(follower_user)
+
+        return Response({'message': f'{follower_username} is added.'})
+
+    @extend_schema(tags=['Account'], description="팔로잉 삭제", request=UserSerializer)
+    def delete(self, request, username):
+        following_user = get_object_by_username(username)
+        if not following_user:
+            return Response({'message': f'{username} user not exists'})
+
+        follower_username = request.data['follower']
+        follower_user = get_object_or_404(User, username=follower_username)
+        if not follower_user:
+            return Response({'message': f'{follower_username} already exists'})
+
+        following_user.following.remove(follower_user)
+
+        return Response({'message': f'{follower_username} is deleted.'})
+

@@ -115,3 +115,32 @@ class AccountAPIView(TestCase):
         delete_data['password'] = 'pass'
         response = self.client.delete(url, data=json.dumps(delete_data), content_type='application/json')
         self.assertEqual(f'"user" is deleted.', response.data['message'])
+
+    def test_add_following_multi(self):
+        user = User.objects.create_user(username='user', password='password')
+        follower1 = User.objects.create_user(username='user1', password='password')
+        url = reverse('accounts:following', args=[user.username])
+        data = {
+            'follower': follower1.username
+        }
+        response = self.client.post(url, data=json.dumps(data), content_type='application/json')
+        self.assertEqual(f'{follower1.username} is added.', response.data['message'])
+
+        follower2 = User.objects.create_user(username='user2', password='password')
+        data['follower'] = follower2.username
+        response = self.client.post(url, data=json.dumps(data), content_type='application/json')
+        self.assertEqual(f'{follower2.username} is added.', response.data['message'])
+
+    def test_delete_following_multi(self):
+        user = User.objects.create_user(username='user', password='password')
+        follower1 = User.objects.create_user(username='user1', password='password')
+        user.following.add(follower1)
+
+        url = reverse('accounts:following', args=[user.username])
+        data = {
+            'follower': follower1.username
+        }
+        response = self.client.delete(url, data=json.dumps(data), content_type='application/json')
+        self.assertEqual(f'{follower1.username} is deleted.', response.data['message'])
+
+        self.assertEqual(0, user.following.count())
