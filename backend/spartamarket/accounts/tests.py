@@ -144,3 +144,4 @@ class AccountAPIView(TestCase):
         self.assertEqual(f'{follower1.username} is deleted.', response.data['message'])
 
         self.assertEqual(0, user.following.count())
+
